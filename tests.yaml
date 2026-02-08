@@ -1,0 +1,251 @@
+get_balance:
+  - name: "positive starting balance"
+    input: { account: { email: "a@b.com", starting_balance: 200 } }
+    output: 200
+
+  - name: "positive balance after withdraw"
+    input:
+      account: { email: "a@b.com", starting_balance: 200 }
+      actions:
+        - { method: "withdraw", amount: 50 }
+    output: 150
+
+  - name: "zero starting balance"
+    input: { account: { email: "zero@b.com", starting_balance: 0 } }
+    output: 0
+
+  - name: "drained to zero"
+    input:
+      account: { email: "drain@b.com", starting_balance: 75 }
+      actions:
+        - { method: "withdraw", amount: 75 }
+    output: 0
+
+withdraw:
+  - name: "valid whole amount"
+    input:
+      account: { email: "a@b.cc", starting_balance: 100 }
+      amount: 50
+    output: { balance: 50 }
+
+  - name: "valid two-decimal amount"
+    input:
+      account: { email: "a@b.cc", starting_balance: 100 }
+      amount: 50.55
+    output: { balance: 49.45 }
+
+  - name: "invalid three-decimal amount"
+    input:
+      account: { email: "a@b.cc", starting_balance: 100 }
+      amount: 50.555
+    output: { error: "IllegalArgumentException" }
+
+  - name: "invalid negative amount"
+    input:
+      account: { email: "a@b.cc", starting_balance: 100 }
+      amount: -50
+    output: { error: "IllegalArgumentException" }
+
+  - name: "invalid zero amount"
+    input:
+      account: { email: "zero@b.cc", starting_balance: 50 }
+      amount: 0
+    output: { error: "IllegalArgumentException" }
+
+  - name: "overdraft"
+    input:
+      account: { email: "a@b.cc", starting_balance: 100 }
+      amount: 200
+    output: { error: "InsufficientFundsException" }
+
+  - name: "exact balance withdraw"
+    input:
+      account: { email: "exact@b.cc", starting_balance: 100 }
+      amount: 100
+    output: { balance: 0 }
+
+  - name: "near-overdraft by one cent"
+    input:
+      account: { email: "near@b.cc", starting_balance: 100 }
+      amount: 100.01
+    output: { error: "InsufficientFundsException" }
+
+is_email_valid:
+  - name: "basic valid email"
+    input: { email: "a@b.com" }
+    output: true
+
+  - name: "valid local separator"
+    input: { email: "abc-efg@mail.com" }
+    output: true
+
+  - name: "valid dashed domain"
+    input: { email: "abc.def@mail-archive.com" }
+    output: true
+
+  - name: "empty string"
+    input: { email: "" }
+    output: false
+
+  - name: "multiple at signs"
+    input: { email: "test@em@ail.com" }
+    output: false
+
+  - name: "missing domain dot"
+    input: { email: "test.email@com" }
+    output: false
+
+  - name: "local starts with dot"
+    input: { email: ".abc@mail.com" }
+    output: false
+
+  - name: "local consecutive dots"
+    input: { email: "abc..def@mail.com" }
+    output: false
+
+  - name: "domain starts with dash"
+    input: { email: "abc@-mail.com" }
+    output: false
+
+  - name: "one-letter tld"
+    input: { email: "abc.def@mail.c" }
+    output: false
+
+is_amount_valid:
+  - name: "positive whole number"
+    input: { amount: 100 }
+    output: true
+
+  - name: "positive two decimals"
+    input: { amount: 50.55 }
+    output: true
+
+  - name: "positive three decimals"
+    input: { amount: 50.505 }
+    output: false
+
+  - name: "negative value"
+    input: { amount: -10.11 }
+    output: false
+
+  - name: "zero"
+    input: { amount: 0 }
+    output: false
+
+  - name: "smallest cent"
+    input: { amount: 0.01 }
+    output: true
+
+  - name: "double max"
+    input: { amount: "Double.MAX_VALUE" }
+    output: true
+
+  - name: "double min"
+    input: { amount: "Double.MIN_VALUE" }
+    output: false
+
+  - name: "positive infinity"
+    input: { amount: "Infinity" }
+    output: false
+
+  - name: "NaN"
+    input: { amount: "NaN" }
+    output: false
+
+constructor:
+  - name: "valid whole balance"
+    input:
+      email: "a@b.com"
+      starting_balance: 200
+    output: { email: "a@b.com", balance: 200 }
+
+  - name: "valid two-decimal balance"
+    input:
+      email: "a@b.com"
+      starting_balance: 200.11
+    output: { balance: 200.11 }
+
+  - name: "invalid three-decimal balance"
+    input:
+      email: "a@b.com"
+      starting_balance: 200.111
+    output: { error: "IllegalArgumentException" }
+
+  - name: "empty email"
+    input:
+      email: ""
+      starting_balance: 100
+    output: { error: "IllegalArgumentException" }
+
+  - name: "negative starting balance"
+    input:
+      email: "a@b.com"
+      starting_balance: -100
+    output: { error: "IllegalArgumentException" }
+
+deposit:
+  - name: "valid whole amount"
+    input:
+      account: { email: "deposit@b.cc", starting_balance: 0 }
+      amount: 50
+    output: { balance: 50 }
+
+  - name: "valid two-decimal amount"
+    input:
+      account: { email: "deposit@b.cc", starting_balance: 0 }
+      amount: 50.55
+    output: { balance: 50.55 }
+
+  - name: "invalid three-decimal amount"
+    input:
+      account: { email: "deposit@b.cc", starting_balance: 0 }
+      amount: 50.555
+    output: { error: "IllegalArgumentException" }
+
+  - name: "invalid negative amount"
+    input:
+      account: { email: "deposit@b.cc", starting_balance: 100 }
+      amount: -50
+    output: { error: "IllegalArgumentException" }
+
+  - name: "invalid zero amount"
+    input:
+      account: { email: "deposit@b.cc", starting_balance: 25 }
+      amount: 0
+    output: { error: "IllegalArgumentException" }
+
+transfer:
+  - name: "valid whole transfer"
+    input:
+      from_account: { email: "transfer@b.cc", starting_balance: 200 }
+      to_account: { email: "receiver@b.cc", starting_balance: 50 }
+      amount: 50
+    output: { from_balance: 150, to_balance: 100 }
+
+  - name: "valid two-decimal transfer"
+    input:
+      from_account: { email: "transfer@b.cc", starting_balance: 200 }
+      to_account: { email: "receiver@b.cc", starting_balance: 0 }
+      amount: 50.55
+    output: { from_balance: 149.45, to_balance: 50.55 }
+
+  - name: "invalid three-decimal transfer"
+    input:
+      from_account: { email: "transfer@b.cc", starting_balance: 200 }
+      to_account: { email: "receiver@b.cc", starting_balance: 0 }
+      amount: 50.555
+    output: { error: "IllegalArgumentException" }
+
+  - name: "invalid negative transfer"
+    input:
+      from_account: { email: "transfer@b.cc", starting_balance: 200 }
+      to_account: { email: "receiver@b.cc", starting_balance: 0 }
+      amount: -50
+    output: { error: "IllegalArgumentException" }
+
+  - name: "overdraft transfer"
+    input:
+      from_account: { email: "transfer@b.cc", starting_balance: 100 }
+      to_account: { email: "receiver@b.cc", starting_balance: 0 }
+      amount: 200
+    output: { error: "InsufficientFundsException" }
