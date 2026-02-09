@@ -64,7 +64,7 @@ Generate the minimal files needed to use and test the library.
   - No decimal places are also allowed. 
 - Otherwise return false. 
 
-## InsufficentFundsException
+## InsufficientFundsException
 - An exception to be thrown when an account does not have the proper funds to perform an action. 
 
 
